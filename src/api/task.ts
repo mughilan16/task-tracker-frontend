@@ -16,6 +16,7 @@ export type IncompleteTask = {
   date: Date,
   startTime: Date,
   tag: string
+  projectId: number
 }
 
 export type Data = {
@@ -28,10 +29,11 @@ export const getTasks = async () => {
     .then(res => res.data);
 };
 
-export const createTask = async (req: { message: string, tag: string }) => {
+export const createTask = async (req: { message: string, tag: string, projectId: number | null }) => {
   return axios.post<IncompleteTask>("http://localhost:5078/api/task/create", {
     message: req.message,
-    tag: req.tag
+    tag: req.tag,
+    project: req.projectId
   }).then(res => res.data);
 }
 
