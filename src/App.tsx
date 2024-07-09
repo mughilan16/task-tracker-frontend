@@ -16,7 +16,7 @@ function App() {
   return (
     <div className='flex flex-row gap-3 bg-zinc-900 w-screen h-screen p-3'>
       <Table tasks={data?.tasks} />
-      <div className='w-1/4 flex flex-col gap-2'>
+      <div className='w-1/5 flex flex-col gap-2'>
         {data !== undefined && <CurrentTask currentTask={data.currentTask} />}
         <Filter />
       </div>
@@ -35,34 +35,38 @@ function ProjectCreate(props: {
   const [newTag, setNewTag] = useState("")
   const { mutateAsync: createProject } = useCreateProject();
   const create = () => {
-    if (newProject == "") return
+    console.log(newProject)
+    if (newProject === "") return
+    console.log(newProject)
     createProject({
       name: newProject,
       tag: newTag
     }).then(res => {
       props.setProject(res.id);
       props.setTag(res.tag)
+      props.setOpen(false);
     })
   }
-  const onClose = () =>  {
-    console.log("working")
-    props.setProject(-1);
+  const onClose = () => {
     props.setOpen(false);
   }
   return <Modal open={props.open} onClose={onClose}>
-    <div>
+    <div
+      className='flex flex-col absolute top-1/3 left-1/3 w-1/4 text-xl bg-zinc-900 border-2 shadow-gray-100 p-3 gap-5'
+    >
+      <div className='flex flex-col text-center text-xl text-gray-200 font-medium'>CREATE NEW PROJECT</div>
       <div className='flex flex-col gap-1'>
-        <label className='text-gray-200 uppercase font-medium'>Description</label>
+        <label className='text-gray-200 uppercase font-medium'>PROJECT NAME</label>
         <input className='bg-transparent max-h-8 border-gray-400 outline-none border-2 h-14 px-2 rounded-sm text-gray-200' placeholder='New Message' value={newProject} onChange={(e) => setNewProject(e.target.value)} />
       </div>
       <div className='flex flex-col gap-1'>
         <label className='text-gray-200 uppercase font-medium'>TAG</label>
         <select className='bg-zinc-900 max-h-8 border-gray-400 h-14 outline-none border-2 rounded-sm px-2 text-gray-200 ring-gray-800' name='Tag' value={newTag} onChange={(e) => setNewTag(e.currentTarget.value)}>
-          <option className="pixel" value={"personal"}>PERSONAL</option>
-          <option className="pixel" value={"work"}>WORK</option>
+          <option className="pixel bg-transparent" value={"personal"}>PERSONAL</option>
+          <option className="pixel bg-transparent" value={"work"}>WORK</option>
         </select>
       </div>
-      <button onSubmit={() => create}>CREATE</button>
+      <button className="bg-gray-200 p-2" onClick={() => create()}>CREATE</button>
     </div>
   </Modal>
 }
@@ -88,34 +92,36 @@ function CurrentTask(props: { currentTask: IncompleteTask | null }) {
 
   const changeProject = (project: number) => {
     console.log(project)
-    if (project == 0) { setProjectCreateModal(true); return; }
     setProject(project);
+    const tag = projects?.projects.find(p => p.id == project)?.tag;
+    if (tag !== undefined) setTag(tag)
   }
   return (
-    <div className='w-full flex flex-col gap-3 border-zinc-500 border-2 p-3 rounded-sm text-xl h-2/5'>
+    <div className='w-full flex flex-col gap-3 border-zinc-500 border-2 p-3 rounded-sm text-lg h-1/3'>
       {props.currentTask === null && <div className='flex flex-col justify-around flex-grow'>
-        <div className='border-2 border-gray-400 rounded-sm p-3.5 text-gray-200 thin'>
+        <div className='border-2 border-gray-400 rounded-sm p-1 text-gray-200 thin'>
           <div className='text-center uppercase'>No Task Active</div>
         </div>
         <div className='flex flex-col gap-1'>
-          <div className='flex flex-col gap-1'>
+          <div className='flex flex-col gap-1.5'>
             <label className='text-gray-200 uppercase font-medium'>Description</label>
-            <input className='bg-transparent max-h-8 border-gray-400 outline-none border-2 h-14 px-2 rounded-sm text-gray-200' placeholder='New Message' onChange={e => setMessage(e.currentTarget.value)} />
+            <input className='bg-transparent min-w-0 max-h-8 border-gray-400 outline-none border-2 h-14 px-2 rounded-sm text-gray-200' placeholder='New Message' onChange={e => setMessage(e.currentTarget.value)} />
           </div>
-          <div className='flex flex-col gap-1'>
+          <div className='flex flex-col gap-1.5'>
+            <label className='text-gray-200 uppercase font-medium'>PROJECT</label>
+            <div className='flex flex-row gap-1'>
+              <select className='bg-zinc-900 min-w-0 max-h-8 border-gray-400 flex-grow h-14 outline-none border-2 rounded-sm px-2 text-gray-200 ring-gray-800' name='Tag' onChange={(e) => changeProject(parseInt(e.currentTarget.value))} >
+                {!isProjectLoading && projects?.projects.map(project => <option value={project.id}>{project.name}</option>)}
+                <option value={-1}>None</option>
+              </select>
+              <button className="bg-gray-200 px-2" onClick={() => setProjectCreateModal(true)}>NEW</button>
+            </div>
+          </div>
+          <div className='flex flex-col gap-1.5'>
             <label className='text-gray-200 uppercase font-medium'>TAG</label>
-            <select className='bg-zinc-900 max-h-8 border-gray-400 h-14 outline-none border-2 rounded-sm px-2 text-gray-200 ring-gray-800' name='Tag' onChange={(e) => setTag(e.currentTarget.value)}>
+            <select disabled={project !== -1} className='bg-zinc-900 max-h-8 border-gray-400 h-14 outline-none border-2 rounded-sm px-2 text-gray-200 ring-gray-800' name='Tag' onChange={(e) => setTag(e.currentTarget.value)} value={tag}>
               <option className="pixel" value={"personal"}>PERSONAL</option>
               <option className="pixel" value={"work"}>WORK</option>
-            </select>
-          </div>
-          <div className='flex flex-col gap-1'>
-            <label className='text-gray-200 uppercase font-medium'>PROJECT</label>
-            <select className='bg-zinc-900 max-h-8 border-gray-400 h-14 outline-none border-2 rounded-sm px-2 text-gray-200 ring-gray-800' name='Tag' onChange={(e) => changeProject(e.currentTarget.value)}>
-              {isProjectLoading && "Loading..."}
-              {!isProjectLoading && projects?.projects.map(project => <option value={project.id}>{project.name}</option>)}
-              <option value={-1}>None</option>
-              <option value={0}>+ New Project</option>
             </select>
           </div>
         </div>
@@ -181,7 +187,44 @@ function CurrentTask(props: { currentTask: IncompleteTask | null }) {
 }
 
 function Filter() {
-  return <div className='h-1/2 border-gray-100 border-2 rounded-sm'>
+  const [day, setDay] = useState("");
+  const [month, setMonth] = useState("ANY");
+  const [year, setYear] = useState("ANY")
+  console.log(day);
+  return <div className='h-1/2 border-gray-100 border-2 rounded-sm text-gray-200 p-3 text-xl'>
+    <div className='flex flex-col gap-2'>
+      <div className='font-medium'>DATE FILTER</div>
+      <div className='flex flex-col gap-3'>
+        <div className='flex flex-row gap-2'>
+          <label className=''>DAY</label>
+          <input value={day} onChange={e => setDay(e.target.value)} placeholder='00' className='w-16 bg-transparent border border-gray-200 px-2 ring-gray-200' type='number' max={31} min={1} step={1} />
+        </div>
+        <div className='flex flex-row gap-2'>
+          <label className=''>MONTH</label>
+          <select className='bg-zinc-900 text-gray-200 border border-gray-200 px-2' onChange={(e) => setMonth(e.currentTarget.value)} value={month}>
+            <option value={"ANY"}>ANY</option>
+            <option value={"1"}>1</option>
+            <option value={"2"}>2</option>
+            <option value={"3"}>3</option>
+            <option value={"4"}>4</option>
+            <option value={"5"}>5</option>
+            <option>6</option>
+            <option>7</option>
+            <option>8</option>
+            <option>9</option>
+            <option>10</option>
+            <option>11</option>
+            <option>12</option>
+          </select>
+        </div>
+        <div className='flex flex-row gap-2'>
+          <label className=''>YEAR</label>
+          <input placeholder='0000' className='w-24 bg-transparent border border-gray-200 px-2 ring-gray-200' type='number' max={2024} min={2024} step={1}
+            onChange={(e) => setYear(e.target.value)} value={year}
+          />
+        </div>
+      </div>
+    </div>
   </div>
 }
 
@@ -189,15 +232,15 @@ function Table(props: { tasks: Array<Task> | undefined }) {
   const { data: projects } = useGetProjects();
   if (props.tasks === undefined) return <Loading />
   const columns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 75, align: "center", headerAlign: "center" },
-    { field: "message", headerName: "DESCRIPTION", width: 450 },
+    { field: "id", headerName: "ID", width: 15, align: "center", headerAlign: "center" },
+    { field: "message", headerName: "DESCRIPTION", width: 250 },
     {
-      field: "tag", headerName: "TAG", width: 130, align: "left", headerAlign: "left", renderCell(params) {
+      field: "tag", headerName: "TAG", width: 100, align: "left", headerAlign: "left", renderCell(params) {
         return <div className='uppercase'>{params.value}</div>
       }
     },
     {
-      field: "projectId", headerName: "PROJECT", width: 170, align: "left", headerAlign: "left",
+      field: "projectId", headerName: "PROJECT", width: 150, align: "left", headerAlign: "left",
       renderCell(params) {
         return <div className='uppercase'>
           {params.row.projectId === null ? "NONE" : projects?.projects.find(p => params.row.projectId === p.id)?.name}
@@ -211,7 +254,7 @@ function Table(props: { tasks: Array<Task> | undefined }) {
       },
     },
     {
-      field: "date-month", headerName: "MONTH", width: 80, align: "left", headerAlign: "left",
+      field: "date-month", headerName: "MONTH", width: 70, align: "left", headerAlign: "left",
       renderCell(params) {
         return dayjs(params.row.date).format("MMMM");
       },
@@ -223,18 +266,18 @@ function Table(props: { tasks: Array<Task> | undefined }) {
       },
     },
     {
-      field: "startTime", headerName: "START", width: 120, align: "center", headerAlign: "center", renderCell(params) {
-        return dayjs(params.row.startTime).format("hh:mm A");
+      field: "startTime", headerName: "START", width: 74, align: "center", headerAlign: "center", renderCell(params) {
+        return dayjs(params.row.startTime).format("HH:mm");
       },
     },
     {
-      field: "stopTime", headerName: "STOP", width: 120, align: "center", headerAlign: "center",
+      field: "stopTime", headerName: "STOP", width: 74, align: "center", headerAlign: "center",
       renderCell(params) {
-        return dayjs(params.row.stopTime).format("hh:mm A");
+        return dayjs(params.row.stopTime).format("HH:mm");
       },
     },
     {
-      field: "total", headerName: "TOTAL", align: "right", headerAlign: "right",
+      field: "total", headerName: "TOTAL", align: "left", headerAlign: "left",
       renderCell(params) {
         return getTotal(params.row.total);
       },
@@ -243,8 +286,8 @@ function Table(props: { tasks: Array<Task> | undefined }) {
   return (
     <DataGrid rows={props.tasks} columns={columns}
       autoPageSize
-      sx={{ fontSize: "1.2rem", fontFamily: "Roboto Mono" }}
-      rowHeight={40}
+      sx={{fontSize: "1.1rem"}}
+      rowHeight={30}
       hideFooterPagination
       hideFooterSelectedRowCount
       hideFooter

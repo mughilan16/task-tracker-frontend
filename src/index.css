@@ -10,20 +10,29 @@
   fontSize: "1.5rem";
 }
 
+@font-face {
+  font-family: BPdots;
+  src: url('/BPdotsDiamond.otf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  fontSize: "1.5rem";
+}
+
 /*
 * {
   font-family: "Poppins", sans-serif;
   font-style: normal;
   font-weight: 400;
+  font-family: BPdots, sans-serif;
 }
 */
 
 * {
-  font-family: "Roboto Mono", sans-serif;
+  font-family: "Roboto Mono";
   font-style: normal;
   font-weight: 400;
 }
 
 select > option{ 
-  font-family: PixelifySans, sans-serif;
+  font-family: BPdots, sans-serif;
 }
