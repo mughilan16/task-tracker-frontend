@@ -81,10 +81,9 @@ function CurrentTask(props: { currentTask: IncompleteTask | null }) {
   const [projectCreateModal, setProjectCreateModal] = useState(false);
 
   const createTask = () => {
+    console.log(message, project)
     if (message === "") { return }
-    const projectId = project !== -1 ? project : null
-    console.log(project)
-    if (projectId === undefined) return
+    const projectId = project;
     create({ message, tag, projectId });
     setMessage("");
     setTag("personal");
@@ -93,8 +92,11 @@ function CurrentTask(props: { currentTask: IncompleteTask | null }) {
   const changeProject = (project: number) => {
     console.log(project)
     setProject(project);
+    if (projects?.projects.find(p => p.id == project)?.name === "None") {
+      return
+    }
     const tag = projects?.projects.find(p => p.id == project)?.tag;
-    if (tag !== undefined) setTag(tag)
+    if (tag !== null && tag !== undefined) setTag(tag)
   }
   return (
     <div className='w-full flex flex-col gap-3 border-zinc-500 border-2 p-3 rounded-sm text-lg h-1/3'>
@@ -112,14 +114,13 @@ function CurrentTask(props: { currentTask: IncompleteTask | null }) {
             <div className='flex flex-row gap-1'>
               <select className='bg-zinc-900 min-w-0 max-h-8 border-gray-400 flex-grow h-14 outline-none border-2 rounded-sm px-2 text-gray-200 ring-gray-800' name='Tag' onChange={(e) => changeProject(parseInt(e.currentTarget.value))} >
                 {!isProjectLoading && projects?.projects.map(project => <option value={project.id}>{project.name}</option>)}
-                <option value={-1}>None</option>
               </select>
               <button className="bg-gray-200 px-2" onClick={() => setProjectCreateModal(true)}>NEW</button>
             </div>
           </div>
           <div className='flex flex-col gap-1.5'>
             <label className='text-gray-200 uppercase font-medium'>TAG</label>
-            <select disabled={project !== -1} className='bg-zinc-900 max-h-8 border-gray-400 h-14 outline-none border-2 rounded-sm px-2 text-gray-200 ring-gray-800' name='Tag' onChange={(e) => setTag(e.currentTarget.value)} value={tag}>
+            <select disabled={projects?.projects.find(p => p.id == project)?.name !== "None"} className='bg-zinc-900 max-h-8 border-gray-400 h-14 outline-none border-2 rounded-sm px-2 text-gray-200 ring-gray-800' name='Tag' onChange={(e) => setTag(e.currentTarget.value)} value={tag}>
               <option className="pixel" value={"personal"}>PERSONAL</option>
               <option className="pixel" value={"work"}>WORK</option>
             </select>
@@ -286,7 +287,7 @@ function Table(props: { tasks: Array<Task> | undefined }) {
   return (
     <DataGrid rows={props.tasks} columns={columns}
       autoPageSize
-      sx={{fontSize: "1.1rem"}}
+      sx={{ fontSize: "1.1rem" }}
       rowHeight={30}
       hideFooterPagination
       hideFooterSelectedRowCount
